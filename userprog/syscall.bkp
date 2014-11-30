@@ -1,0 +1,45 @@
+#include "userprog/syscall.h"
+#include <stdio.h>
+#include <syscall-nr.h>
+#include "threads/interrupt.h"
+#include "threads/thread.h"
+#include "userprog/pagedir.h"
+#include "userprog/process.h"
+#include <user/syscall.h>
+
+static void syscall_handler (struct intr_frame *);
+
+void
+syscall_init (void) 
+{
+  intr_register_int (0x30, 3, INTR_ON, syscall_handler, "syscall");
+}
+
+static void
+syscall_handler (struct intr_frame *f UNUSED) 
+{
+  uint32_t* ptr = f->esp;
+  int syscall_num = *ptr;
+
+  // write
+  int fd;
+  void *buffer;
+  unsigned size;
+
+  
+  switch(syscall_num){
+	case SYS_WRITE:
+		size = *(unsigned*) (ptr + 1);
+		fd = *(int*) (ptr + 2);
+		buffer = *(void**) (ptr + 3);
+
+		printf("snum: %d fd: %d size: %d\n", syscall_num, fd, size);
+
+		if(fd == 1)
+		{
+			putbuf(buffer, 1);
+		}
+	break;
+  }
+  thread_exit ();
+}
